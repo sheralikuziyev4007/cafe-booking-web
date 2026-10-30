@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://sheralikuziyev4007-cafe-booking-web-one.vercel.app/sitemap.xml
+Sitemap: https://cafe-booking-web.vercel.app/sitemap.xml

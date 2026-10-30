@@ -3,7 +3,7 @@
 A production-ready website for a coffee shop or restaurant. Guests browse the menu, book a table and send messages
 in **English, Russian or Uzbek**; the owner manages the menu, bookings and messages in a simple admin panel.
 
-**Live demo:** [sheralikuziyev4007-cafe-booking-web-one.vercel.app](https://sheralikuziyev4007-cafe-booking-web-one.vercel.app/) · **Admin:** [/admin](https://sheralikuziyev4007-cafe-booking-web-one.vercel.app/admin) (`admin` / `admin123`)
+**Live demo:** [cafe-booking-web.vercel.app](https://cafe-booking-web.vercel.app/) · **Admin:** [/admin](https://cafe-booking-web.vercel.app/admin) (`admin` / `admin123`)
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
