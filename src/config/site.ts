@@ -32,7 +32,7 @@ export interface SiteConfig {
 // Demo data — replace with the real business details before going live.
 export const SITE: SiteConfig = {
   name: "Coffee&Co",
-  url: "https://coffee-and-co-snowy.vercel.app",
+  url: "https://sheralikuziyev4007-cafe-booking-web-one.vercel.app",
   foundedYear: 2016,
   currency: { code: "UZS", label: { en: "UZS", ru: "сум", uz: "soʻm" } },
   contacts: {

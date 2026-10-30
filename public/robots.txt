@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://coffee-and-co-snowy.vercel.app/sitemap.xml
+Sitemap: https://sheralikuziyev4007-cafe-booking-web-one.vercel.app/sitemap.xml
