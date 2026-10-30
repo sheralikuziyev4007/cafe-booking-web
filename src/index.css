@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens as RGB channels (used by tailwind.config.js). Text/background pairs keep contrast ≥ 4.5:1. */
+:root {
+  --page: 247 241 230; /* cream */
+  --page-alt: 239 228 204; /* creamDark */
+  --card: 250 246 238;
+  --field: 255 255 255;
+  --heading: 43 27 18; /* espresso */
+  --copy: 74 56 35; /* ink */
+  --line: 220 203 160; /* sand */
+  --accent: 122 83 9; /* dark brass for text on light backgrounds */
+  --danger: 166 63 38;
+  --inverse: 43 27 18;
+  --on-inverse: 247 241 230;
+  --success: 22 101 52;
+}
+
+.dark {
+  --page: 23 16 11;
+  --page-alt: 31 22 16;
+  --card: 41 30 22;
+  --field: 23 16 11;
+  --heading: 247 241 230;
+  --copy: 218 204 182;
+  --line: 77 61 46;
+  --accent: 222 170 74;
+  --danger: 240 147 123;
+  --inverse: 201 147 46;
+  --on-inverse: 43 27 18;
+  --success: 134 239 172;
+}
+
+body {
+  @apply bg-page text-copy;
+}
+
+/* Landing sections are not hidden under the sticky header when scrolled to */
+section {
+  scroll-margin-top: 4.5rem;
+}
+
+/* Scroll reveal (see components/ui/Reveal.tsx) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

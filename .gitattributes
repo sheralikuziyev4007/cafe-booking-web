@@ -1,0 +1,7 @@
+# Store text files with LF line endings regardless of OS (avoids whole-file diffs on Windows)
+* text=auto eol=lf
+
+*.webp binary
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coffee&amp;Co — specialty coffee &amp; roastery in Tashkent</title>
+    <meta
+      name="description"
+      content="Coffee&amp;Co is a cosy coffee shop and roastery in the centre of Tashkent: specialty coffee, homemade desserts and breakfasts. Book a table online."
+    />
+    <link rel="canonical" href="https://coffee-and-co-snowy.vercel.app/" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#2B1B12" />
+    <link rel="preload" as="image" href="/images/latte-art.webp" fetchpriority="high" />
+
+    <!-- Open Graph / link previews in messengers and social networks -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Coffee&amp;Co" />
+    <meta property="og:url" content="https://coffee-and-co-snowy.vercel.app/" />
+    <meta property="og:title" content="Coffee&amp;Co — specialty coffee &amp; roastery in Tashkent" />
+    <meta
+      property="og:description"
+      content="Specialty coffee, our own roast and homemade desserts. See the menu and book a table online."
+    />
+    <meta property="og:image" content="https://coffee-and-co-snowy.vercel.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Coffee&amp;Co website: hero section with latte art" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:locale:alternate" content="ru_RU" />
+    <meta property="og:locale:alternate" content="uz_UZ" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Coffee&amp;Co — specialty coffee &amp; roastery in Tashkent" />
+    <meta name="twitter:description" content="Specialty coffee, our own roast and homemade desserts. Book a table online." />
+    <meta name="twitter:image" content="https://coffee-and-co-snowy.vercel.app/og-image.jpg" />
+
+    <!-- Structured data for Google (local business rich results) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "CafeOrCoffeeShop",
+        "name": "Coffee&Co",
+        "url": "https://coffee-and-co-snowy.vercel.app/",
+        "image": "https://coffee-and-co-snowy.vercel.app/og-image.jpg",
+        "telephone": "+998710000000",
+        "servesCuisine": ["Coffee", "Desserts", "Breakfast"],
+        "priceRange": "$$",
+        "acceptsReservations": true,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "45 Amir Temur St",
+          "addressLocality": "Tashkent",
+          "addressCountry": "UZ"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": 41.3111, "longitude": 69.2797 },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "opens": "08:00",
+            "closes": "22:00"
+          }
+        ],
+        "sameAs": ["https://instagram.com/coffeeandco", "https://t.me/coffeeandco", "https://facebook.com/coffeeandco"]
+      }
+    </script>
+
+    <!-- Apply the saved theme before the first paint (no flash of the wrong theme) -->
+    <script>
+      try {
+        var saved = JSON.parse(localStorage.getItem("coffee-and-co:theme"));
+        var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) document.documentElement.classList.add("dark");
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Coffee&amp;Co — please enable JavaScript to view the menu and book a table. Phone: +998 71 000 00 00</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
