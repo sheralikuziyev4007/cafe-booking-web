@@ -56,13 +56,13 @@ describe("Landing page", () => {
     const form = screen.getByRole("form", { name: "Contact form" });
 
     await user.click(within(form).getByRole("button", { name: /Send/ }));
-    expect(within(form).getAllByText("This field is required")).toHaveLength(3);
+    expect(await within(form).findAllByText("This field is required")).toHaveLength(3);
 
     await user.type(within(form).getByLabelText("Your name"), "Ali");
     await user.type(within(form).getByLabelText("Phone or email"), "not-valid");
     await user.type(within(form).getByLabelText("Message"), "Hello!");
     await user.click(within(form).getByRole("button", { name: /Send/ }));
-    expect(within(form).getByText(/Enter a valid email or a full phone number/)).toBeInTheDocument();
+    expect(await within(form).findByText(/Enter a valid email or a full phone number/)).toBeInTheDocument();
 
     await user.clear(within(form).getByLabelText("Phone or email"));
     await user.type(within(form).getByLabelText("Phone or email"), "ali@mail.uz");
@@ -88,7 +88,7 @@ describe("Landing page", () => {
     expect(within(dialog).getByLabelText("Date")).toHaveValue(todayText);
 
     await user.click(within(dialog).getByRole("button", { name: "Request booking" }));
-    expect(within(dialog).getAllByText("This field is required")).toHaveLength(3); // name, phone, time
+    expect(await within(dialog).findAllByText("This field is required")).toHaveLength(3); // name, phone, time
 
     await user.type(within(dialog).getByLabelText("Your name"), "Madina");
     await user.type(within(dialog).getByLabelText("Phone"), "901234567");
@@ -146,7 +146,7 @@ describe("Landing page", () => {
     expect(phone).toHaveValue("+998 90 12");
 
     await user.click(within(dialog).getByRole("button", { name: "Request booking" }));
-    expect(within(dialog).getByText(/Enter a full number/)).toBeInTheDocument();
+    expect(await within(dialog).findByText(/Enter a full number/)).toBeInTheDocument();
 
     // Only the country code left → field is cleared on blur
     await user.clear(phone);
@@ -165,7 +165,7 @@ describe("Landing page", () => {
     await user.type(date, "31112026");
     expect(date).toHaveValue("31/11/2026");
     await user.click(within(dialog).getByRole("button", { name: "Request booking" }));
-    expect(within(dialog).getByText("Enter a real date in the format dd/mm/yyyy")).toBeInTheDocument();
+    expect(await within(dialog).findByText("Enter a real date in the format dd/mm/yyyy")).toBeInTheDocument();
 
     // Calendar: opens on the selected date, arrows move by day, Enter picks the date
     await user.clear(date);
@@ -205,6 +205,6 @@ describe("Landing page", () => {
     await user.clear(contact);
     await user.type(contact, "+998 90 12");
     await user.click(within(form).getByRole("button", { name: /Send/ }));
-    expect(within(form).getByText(/Enter a valid email or a full phone number/)).toBeInTheDocument();
+    expect(await within(form).findByText(/Enter a valid email or a full phone number/)).toBeInTheDocument();
   });
 });

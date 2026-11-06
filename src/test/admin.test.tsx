@@ -40,8 +40,8 @@ describe("Admin panel", () => {
     await user.click(screen.getByRole("button", { name: "Add item" }));
     let dialog = screen.getByRole("dialog", { name: "New item" });
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
-    expect(within(dialog).getAllByText("Fill in at least one language")).toHaveLength(2);
-    expect(within(dialog).getByText("Enter a whole number greater than 0")).toBeInTheDocument();
+    expect(await within(dialog).findAllByText("Fill in at least one language")).toHaveLength(2);
+    expect(await within(dialog).findByText("Enter a whole number greater than 0")).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole("tab", { name: /Русский/ }));
     await user.type(within(dialog).getByLabelText("Name (RU)"), "Матча латте");
