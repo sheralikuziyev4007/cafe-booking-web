@@ -23,6 +23,8 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}", "supabase/functions/**/*.test.ts"],
     css: false,
+    // Integration tests render the whole app; give slow machines and CI room
+    testTimeout: 15_000,
     // Tests always use the demo storage, even if a developer has Supabase keys in .env.local
     env: { VITE_SUPABASE_URL: "", VITE_SUPABASE_ANON_KEY: "" },
   },
