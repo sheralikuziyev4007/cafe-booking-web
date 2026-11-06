@@ -5,6 +5,8 @@ export const queryKeys = {
   menu: ["menu"] as const,
   bookings: ["bookings"] as const,
   messages: ["messages"] as const,
+  /** All availability queries (prefix) or one day */
+  availability: (isoDate?: string) => (isoDate ? (["availability", isoDate] as const) : (["availability"] as const)),
 };
 
 interface QueryClientOptions {

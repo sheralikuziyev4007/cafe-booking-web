@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createFakeSupabase } from "@/test/fakeSupabase";
+import { SlotFullError } from "../errors";
 import { createSupabaseInboxRepository } from "./supabaseInboxRepository";
 import { createSupabaseMenuRepository } from "./supabaseMenuRepository";
 
@@ -98,6 +99,31 @@ describe("Supabase inbox repository", () => {
     expect(calls[0]).toMatchObject({ table: "bookings", op: "insert", returning: false });
     expect(calls[0].payload).toEqual({ name: "Madina", phone: "+998 90 123 45 67", booking_date: "2026-11-10", booking_time: "19:00", guests: 4, comment: "" });
     expect(calls[0].payload).not.toHaveProperty("status");
+  });
+
+  it("reads slot availability with the booking_availability function", async () => {
+    const { client, rpcCalls } = createFakeSupabase({}, { rpc: { booking_availability: { capacity: 6, booked: { "19:00": 6, "20:00": 2, bad: "x" } } } });
+    const repo = createSupabaseInboxRepository(() => Promise.resolve(client));
+
+    expect(await repo.getAvailability("2026-11-10")).toEqual({ capacity: 6, booked: { "19:00": 6, "20:00": 2 } });
+    expect(rpcCalls).toEqual([{ name: "booking_availability", args: { day: "2026-11-10" } }]);
+  });
+
+  it("treats an unexpected availability answer as 'no information' instead of blocking every time", async () => {
+    const { client } = createFakeSupabase({}, { rpc: { booking_availability: "nonsense" } });
+    const repo = createSupabaseInboxRepository(() => Promise.resolve(client));
+
+    const result = await repo.getAvailability("2026-11-10");
+    expect(result.booked).toEqual({});
+    expect(result.capacity).toBeGreaterThan(1000);
+  });
+
+  it("turns the database's SLOT_FULL error into a SlotFullError", async () => {
+    const { client } = createFakeSupabase({}, { error: "SLOT_FULL" });
+    const repo = createSupabaseInboxRepository(() => Promise.resolve(client));
+
+    await expect(repo.createBooking({ name: "A", phone: "+998 90 123 45 67", date: "2026-11-10", time: "19:00", guests: 2, comment: "" })).rejects.toBeInstanceOf(SlotFullError);
+    await expect(repo.setBookingStatus("x", "new")).rejects.toBeInstanceOf(SlotFullError);
   });
 
   it("lists bookings newest first and changes their status", async () => {

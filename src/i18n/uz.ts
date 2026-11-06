@@ -100,6 +100,8 @@ export const uz: Dictionary = {
     openCalendar: "Kalendardan sanani tanlash",
     prevMonth: "Oldingi oy",
     nextMonth: "Keyingi oy",
+    slotFull: "band",
+    slotTaken: "Bu vaqt hozirgina band boʻldi. Boshqa vaqtni tanlang.",
     selectTime: "Vaqtni tanlang",
   },
   footer: {
@@ -192,6 +194,7 @@ export const uz: Dictionary = {
       delete: "Oʻchirish",
       guests: (n: number) => `${n} kishi`,
       received: (date: string) => `Qabul qilindi: ${date}`,
+      slotFull: "Bronni tiklab boʻlmaydi: bu vaqt toʻliq band.",
       confirmDelete: (name: string) => `Ishonchingiz komilmi? “${name}” broni oʻchiriladi.`,
     },
     messages: {

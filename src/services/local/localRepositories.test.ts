@@ -3,6 +3,8 @@ import { INITIAL_MENU } from "@/data/seedData";
 import type { MenuItemInput } from "@/types";
 import { createLocalAuthService } from "./localAuthService";
 import { createLocalInboxRepository } from "./localInboxRepository";
+import { SITE } from "@/config/site";
+import { SlotFullError } from "../errors";
 import { createLocalMenuRepository, MENU_STORAGE_KEY } from "./localMenuRepository";
 
 const newItem: MenuItemInput = {
@@ -60,6 +62,48 @@ describe("local menu repository", () => {
     await repo.create(newItem);
 
     expect(await repo.list()).toHaveLength(INITIAL_MENU.length + 1);
+  });
+});
+
+describe("local inbox repository: slot capacity", () => {
+  const booking = { name: "Madina", phone: "+998 90 123 45 67", date: "2026-11-10", time: "19:00", guests: 2, comment: "" };
+  const fillSlot = async (repo: ReturnType<typeof createLocalInboxRepository>) => {
+    for (let i = 0; i < SITE.booking.tablesPerSlot; i++) await repo.createBooking(booking);
+  };
+
+  it("rejects a booking when the slot is full, but not other times or days", async () => {
+    const repo = createLocalInboxRepository();
+    await fillSlot(repo);
+
+    await expect(repo.createBooking(booking)).rejects.toBeInstanceOf(SlotFullError);
+    await expect(repo.createBooking({ ...booking, time: "19:30" })).resolves.toBeUndefined();
+    await expect(repo.createBooking({ ...booking, date: "2026-11-11" })).resolves.toBeUndefined();
+  });
+
+  it("reports how many bookings each time has, ignoring cancelled ones", async () => {
+    const repo = createLocalInboxRepository();
+    await fillSlot(repo);
+    const [first] = await repo.listBookings();
+    await repo.setBookingStatus(first.id, "cancelled");
+
+    expect(await repo.getAvailability("2026-11-10")).toEqual({
+      capacity: SITE.booking.tablesPerSlot,
+      booked: { "19:00": SITE.booking.tablesPerSlot - 1 },
+    });
+    expect((await repo.getAvailability("2026-12-01")).booked).toEqual({});
+  });
+
+  it("frees a seat when a booking is cancelled and refuses to restore it into a full slot", async () => {
+    const repo = createLocalInboxRepository();
+    await fillSlot(repo);
+    const [first] = await repo.listBookings();
+
+    await repo.setBookingStatus(first.id, "cancelled");
+    await repo.createBooking(booking); // the freed seat
+    await expect(repo.setBookingStatus(first.id, "new")).rejects.toBeInstanceOf(SlotFullError);
+    // confirming a booking that already holds a seat is fine
+    const [active] = (await repo.listBookings()).filter((b) => b.status === "new");
+    await expect(repo.setBookingStatus(active.id, "confirmed")).resolves.toBeUndefined();
   });
 });
 

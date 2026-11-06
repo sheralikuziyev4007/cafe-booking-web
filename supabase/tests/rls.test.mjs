@@ -98,5 +98,40 @@ await as("admin", async () => {
   ok("admin deletes bookings", !db2.e && db2.r.rows.length === 1);
 });
 
+// --- slot capacity (max 6 active bookings per date + time) ---
+const slotInsert = (date, time) =>
+  `insert into public.bookings (name, phone, booking_date, booking_time, guests, comment) values ('Guest','+998 90 123 45 67','${date}','${time}',2,'')`;
+const availability = async (date) => (await db.query(`select public.booking_availability($1::date) a`, [date])).rows[0].a;
+
+await as("anon", async () => {
+  let accepted = 0;
+  for (let i = 0; i < 6; i++) if (!(await tryQ(slotInsert("2027-01-10", "20:00"))).e) accepted++;
+  ok("a slot accepts exactly its capacity (6 bookings)", accepted === 6);
+  const seventh = await tryQ(slotInsert("2027-01-10", "20:00"));
+  ok("the 7th booking for a full slot is rejected with SLOT_FULL", seventh.e?.includes("SLOT_FULL"), seventh.e);
+  ok("another time on the same day is still free", !(await tryQ(slotInsert("2027-01-10", "20:30"))).e);
+  ok("the same time on another day is still free", !(await tryQ(slotInsert("2027-01-11", "20:00"))).e);
+
+  const a = await availability("2027-01-10");
+  ok("availability reports capacity and counts per time", a.capacity === 6 && a.booked["20:00"] === 6 && a.booked["20:30"] === 1, JSON.stringify(a));
+  ok("availability exposes counts only (no personal data)", Object.keys(a).sort().join() === "booked,capacity");
+  ok("availability of an empty day has no counts", Object.keys((await availability("2027-02-01")).booked).length === 0);
+  ok("anon cannot call the trigger function directly", !!(await tryQ(`select public.enforce_slot_capacity()`)).e);
+});
+
+await as("admin", async () => {
+  const one = (await db.query(`select id from public.bookings where booking_date = '2027-01-10' and booking_time = '20:00' limit 1`)).rows[0].id;
+  ok("confirming a booking inside a full slot still works", !(await tryQ(`update public.bookings set status = 'confirmed' where id = $1 returning id`, [one])).e);
+  ok("cancelling frees a seat", !(await tryQ(`update public.bookings set status = 'cancelled' where id = $1 returning id`, [one])).e);
+  ok("availability no longer counts the cancelled booking", (await availability("2027-01-10")).booked["20:00"] === 5);
+  await as("anon", async () => {
+    ok("the freed seat can be booked again", !(await tryQ(slotInsert("2027-01-10", "20:00"))).e);
+  });
+  const restore = await tryQ(`update public.bookings set status = 'new' where id = $1 returning id`, [one]);
+  ok("restoring a cancelled booking into a full slot is rejected", restore.e?.includes("SLOT_FULL"), restore.e);
+  const move = await tryQ(`update public.bookings set booking_time = '20:00' where booking_date = '2027-01-10' and booking_time = '20:30' returning id`);
+  ok("moving a booking into a full slot is rejected", move.e?.includes("SLOT_FULL"), move.e);
+});
+
 console.log(failures ? `\n${failures} FAILED` : "\nall passed");
 process.exit(failures ? 1 : 0);

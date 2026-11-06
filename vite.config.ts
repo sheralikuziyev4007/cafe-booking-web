@@ -21,7 +21,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "supabase/functions/**/*.test.ts"],
     css: false,
     // Tests always use the demo storage, even if a developer has Supabase keys in .env.local
     env: { VITE_SUPABASE_URL: "", VITE_SUPABASE_ANON_KEY: "" },

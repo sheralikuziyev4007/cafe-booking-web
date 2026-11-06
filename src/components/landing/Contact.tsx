@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { MapPin, Phone, Clock, Instagram, Send, Check, ExternalLink } from "lucide-react";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -7,7 +8,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SITE } from "@/config/site";
 import { useI18n } from "@/hooks/useI18n";
 import { useVisitorActions } from "@/hooks/useInbox";
-import { validateContactForm, type FormErrors } from "@/utils/validators";
+import { lazyZodResolver } from "@/schemas/lazyResolver";
+import { codeOf } from "@/schemas/zodErrors";
 import { errorMessage } from "@/utils/formatters";
 import { formatPhone, isValidPhone } from "@/utils/phone";
 import type { ContactFormData } from "@/types";
@@ -17,37 +19,38 @@ const EMPTY_FORM: ContactFormData = { name: "", contact: "", message: "" };
 export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
   const { t, pick } = useI18n();
   const { createMessage } = useVisitorActions();
-  const [form, setForm] = useState<ContactFormData>(EMPTY_FORM);
-  const [errors, setErrors] = useState<FormErrors<ContactFormData>>({});
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<ContactFormData>({ resolver: lazyZodResolver(() => import("@/schemas/contact").then((m) => m.contactSchema)), defaultValues: EMPTY_FORM });
+  const contactField = register("contact");
   const [submitted, setSubmitted] = useState(false);
   const timerRef = useRef<number>();
 
   // Don't leave a pending timer after unmount
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    const validationErrors = validateContactForm(form);
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
-
-    const contact = form.contact.trim();
+  // The schema has already validated and trimmed the values
+  const onSubmit = handleSubmit((values) => {
     const data = {
-      name: form.name.trim(),
+      name: values.name,
       // Phone numbers are stored in one format: +998 90 123 45 67
-      contact: contact.includes("@") ? contact : formatPhone(contact),
-      message: form.message.trim(),
+      contact: values.contact.includes("@") ? values.contact : formatPhone(values.contact),
+      message: values.message,
     };
     // The form is cleared only after the request succeeds, so nothing typed is lost on failure
     createMessage.mutate(data, {
       onSuccess: () => {
-        setForm(EMPTY_FORM);
+        reset(EMPTY_FORM);
         setSubmitted(true);
         window.clearTimeout(timerRef.current);
         timerRef.current = window.setTimeout(() => setSubmitted(false), 5000);
       },
     });
-  };
+  });
 
   return (
     <section ref={ref} className="bg-espresso py-20 md:py-24">
@@ -102,16 +105,15 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
         </Reveal>
 
         <Reveal delay={150}>
-          <form onSubmit={handleSubmit} noValidate className="space-y-4 self-start" aria-label={t.contact.formLabel}>
+          <form onSubmit={onSubmit} noValidate className="space-y-4 self-start" aria-label={t.contact.formLabel}>
             <Input
               tone="dark"
               label={t.contact.name}
               placeholder={t.contact.name}
               autoComplete="name"
               maxLength={80}
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              error={errorMessage(t, errors.name)}
+              {...register("name")}
+              error={errorMessage(t, codeOf(errors.name))}
             />
             <Input
               tone="dark"
@@ -119,13 +121,13 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
               placeholder={t.contact.contact}
               autoComplete="email"
               maxLength={120}
-              value={form.contact}
-              onChange={(e) => setForm({ ...form, contact: e.target.value })}
-              onBlur={() => {
-                const value = form.contact.trim();
-                if (!value.includes("@") && isValidPhone(value)) setForm({ ...form, contact: formatPhone(value) });
+              {...contactField}
+              onBlur={(e) => {
+                const value = e.target.value.trim();
+                if (!value.includes("@") && isValidPhone(value)) setValue("contact", formatPhone(value));
+                return contactField.onBlur(e);
               }}
-              error={errorMessage(t, errors.contact)}
+              error={errorMessage(t, codeOf(errors.contact))}
             />
             <Textarea
               tone="dark"
@@ -133,9 +135,8 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
               placeholder={t.contact.message}
               rows={5}
               maxLength={2000}
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-              error={errorMessage(t, errors.message)}
+              {...register("message")}
+              error={errorMessage(t, codeOf(errors.message))}
             />
 
             <Button type="submit" disabled={createMessage.isPending} className="flex items-center gap-2 focus-visible:ring-offset-espresso">

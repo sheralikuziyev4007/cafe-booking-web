@@ -108,6 +108,8 @@ export const ru: Dictionary = {
     openCalendar: "Выбрать дату в календаре",
     prevMonth: "Предыдущий месяц",
     nextMonth: "Следующий месяц",
+    slotFull: "мест нет",
+    slotTaken: "Это время только что заняли. Выберите другое.",
     selectTime: "Выберите время",
   },
   footer: {
@@ -200,6 +202,7 @@ export const ru: Dictionary = {
       delete: "Удалить",
       guests: pluralGuests,
       received: (date: string) => `Получено ${date}`,
+      slotFull: "Нельзя восстановить бронь: на это время уже нет свободных мест.",
       confirmDelete: (name: string) => `Вы уверены? Бронь «${name}» будет удалена.`,
     },
     messages: {

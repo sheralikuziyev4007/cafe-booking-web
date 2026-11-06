@@ -17,7 +17,7 @@ export interface RecordedCall {
  * A tiny in-memory stand-in for the part of the Supabase query builder the repositories use.
  * It records every call, so tests can check exactly what would be sent to the server.
  */
-export function createFakeSupabase(initial: Record<string, Row[]> = {}, options: { error?: string } = {}) {
+export function createFakeSupabase(initial: Record<string, Row[]> = {}, options: { error?: string; rpc?: Record<string, unknown> } = {}) {
   const tables: Record<string, Row[]> = JSON.parse(JSON.stringify(initial));
   const calls: RecordedCall[] = [];
   const rpcCalls: { name: string; args: Row }[] = [];
@@ -90,7 +90,8 @@ export function createFakeSupabase(initial: Record<string, Row[]> = {}, options:
     from,
     rpc: (name: string, args: Row) => {
       rpcCalls.push({ name, args });
-      return Promise.resolve(options.error ? { data: null, error: { message: options.error } } : { data: null, error: null });
+      if (options.error) return Promise.resolve({ data: null, error: { message: options.error } });
+      return Promise.resolve({ data: options.rpc?.[name] ?? null, error: null });
     },
   };
 

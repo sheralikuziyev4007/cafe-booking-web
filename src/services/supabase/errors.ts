@@ -1,5 +1,9 @@
+import { SlotFullError } from "../errors";
+
 /** Turns a Supabase error object into a regular Error so TanStack Query can handle it */
 export function assertNoError(error: { message: string } | null): asserts error is null {
+  // The database trigger in supabase/schema.sql raises SLOT_FULL when a time is fully booked
+  if (error?.message === "SLOT_FULL") throw new SlotFullError();
   if (error) throw new Error(error.message);
 }
 

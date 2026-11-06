@@ -28,6 +28,18 @@ export function useMessages() {
   });
 }
 
+/** How busy each time slot is on a day. Disabled until the date is a valid yyyy-mm-dd. */
+export function useAvailability(isoDate: string | null) {
+  const { inbox } = useServices();
+  return useQuery({
+    queryKey: queryKeys.availability(isoDate ?? ""),
+    queryFn: () => inbox.getAvailability(isoDate ?? ""),
+    enabled: isoDate !== null,
+    // Seats are taken all the time: do not trust a cached answer for long
+    staleTime: 10_000,
+  });
+}
+
 /** What visitors do on the landing page: send a booking request or a message */
 export function useVisitorActions() {
   const { inbox } = useServices();
@@ -35,7 +47,10 @@ export function useVisitorActions() {
 
   const createBooking = useMutation({
     mutationFn: (booking: NewBooking) => inbox.createBooking(booking),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.bookings }),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.availability() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.bookings });
+    },
   });
   const createMessage = useMutation({
     mutationFn: (message: NewMessage) => inbox.createMessage(message),
@@ -59,7 +74,10 @@ export function useInboxActions() {
     onError: (_error: Error, _variables: V, context: { previous: T[] | undefined } | undefined) => {
       if (context?.previous) queryClient.setQueryData<T[]>(key, context.previous);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSettled: () => {
+      if (key === queryKeys.bookings) void queryClient.invalidateQueries({ queryKey: queryKeys.availability() });
+      return queryClient.invalidateQueries({ queryKey: key });
+    },
   });
 
   const setBookingStatus = useMutation({

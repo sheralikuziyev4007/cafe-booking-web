@@ -1,7 +1,6 @@
 import type { Dictionary } from "@/i18n";
-import type { BookingFormData, ContactFormData, Localized, MenuItemInput } from "@/types";
+import type { Localized, MenuItemInput } from "@/types";
 import { isValidPhone } from "./phone";
-import { parseDateText } from "./date";
 
 export { isValidPhone };
 
@@ -30,40 +29,9 @@ export function hasAnyText(text: Localized): boolean {
   return Object.values(text).some((v) => v.trim() !== "");
 }
 
-export function validateContactForm(form: ContactFormData): FormErrors<ContactFormData> {
-  const errors: FormErrors<ContactFormData> = {};
-
-  if (!form.name.trim()) errors.name = "required";
-
-  const contact = form.contact.trim();
-  if (!contact) errors.contact = "required";
-  // "@" means the visitor is typing an email; otherwise it must be a complete phone number
-  else if (contact.includes("@") ? !isValidEmail(contact) : !isValidPhone(contact)) errors.contact = "invalidContact";
-
-  if (!form.message.trim()) errors.message = "required";
-
-  return errors;
-}
-
 /** Menu item form: the price is kept as a string while the user is typing. */
 export interface MenuFormState extends Omit<MenuItemInput, "price"> {
   price: string;
-}
-
-export function validateMenuForm(form: MenuFormState): FormErrors<MenuFormState> {
-  const errors: FormErrors<MenuFormState> = {};
-
-  if (!hasAnyText(form.name)) errors.name = "needOneLanguage";
-
-  const price = form.price.trim();
-  if (!/^\d+$/.test(price) || Number(price) <= 0) errors.price = "invalidPrice";
-
-  const image = form.imageUrl.trim();
-  if (image && !isValidImageUrl(image)) errors.imageUrl = "invalidImageUrl";
-
-  if (!hasAnyText(form.description)) errors.description = "needOneLanguage";
-
-  return errors;
 }
 
 export interface BookingRules {
@@ -95,30 +63,4 @@ export function toLocalIsoDate(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
-}
-
-export function validateBookingForm(form: BookingFormData, rules: BookingRules): FormErrors<BookingFormData> {
-  const errors: FormErrors<BookingFormData> = {};
-
-  if (!form.name.trim()) errors.name = "required";
-
-  // "+998" alone (the pre-filled country code) counts as empty
-  if (form.phone.replace(/\D/g, "").length <= 3) errors.phone = "required";
-  else if (!isValidPhone(form.phone)) errors.phone = "invalidPhone";
-
-  // form.date is what the user typed: dd/mm/yyyy
-  const isoDate = parseDateText(form.date);
-  if (!form.date.trim()) errors.date = "required";
-  else if (!isoDate) errors.date = "invalidDate";
-  else if (isoDate < rules.today) errors.date = "dateInPast";
-  else if (isoDate > addDays(rules.today, rules.maxDaysAhead)) errors.date = "dateTooFar";
-
-  if (!form.time) errors.time = "required";
-  else if (!rules.slots.includes(form.time)) errors.time = "timeOutOfHours";
-  else if (isoDate === rules.today && rules.nowTime && form.time <= rules.nowTime) errors.time = "timePassed";
-
-  const guests = Number(form.guests);
-  if (!Number.isInteger(guests) || guests < 1 || guests > rules.maxGuests) errors.guests = "invalidGuests";
-
-  return errors;
 }

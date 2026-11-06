@@ -31,10 +31,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, FieldOwnProps {}
 
-export function Textarea({ label, hideLabel, error, tone = "light", className = "", ...rest }: TextareaProps) {
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { label, hideLabel, error, tone = "light", className = "", ...rest },
+  ref
+) {
   return (
     <Field label={label} hideLabel={hideLabel} error={error} tone={tone}>
-      {(a11y) => <textarea {...a11y} className={controlClasses(tone, Boolean(error), `resize-none ${className}`)} {...rest} />}
+      {(a11y) => <textarea ref={ref} {...a11y} className={controlClasses(tone, Boolean(error), `resize-none ${className}`)} {...rest} />}
     </Field>
   );
-}
+});

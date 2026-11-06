@@ -81,6 +81,76 @@ create table if not exists public.bookings (
   created_at   timestamptz not null default now()
 );
 
+create index if not exists bookings_slot_idx on public.bookings (booking_date, booking_time);
+
+-- ---------------------------------------------------------------------------
+-- Slot capacity: at most slot_capacity() active bookings (new or confirmed) per date + time.
+-- Change the number here AND tablesPerSlot in src/config/site.ts (the demo mode uses the config value;
+-- with Supabase the site reads the number from booking_availability(), so the database is the source of truth).
+-- ---------------------------------------------------------------------------
+create or replace function public.slot_capacity()
+returns integer
+language sql
+immutable
+as $$ select 6 $$;
+
+-- Runs with the owner's rights, because visitors are not allowed to read the bookings table.
+-- The advisory lock makes two simultaneous requests for the last table wait for each other,
+-- so the slot can never be overbooked.
+create or replace function public.enforce_slot_capacity()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.status = 'cancelled' then
+    return new;
+  end if;
+  -- an active booking that stays in the same slot does not need a new seat
+  if tg_op = 'UPDATE' and old.status <> 'cancelled'
+     and old.booking_date = new.booking_date and old.booking_time = new.booking_time then
+    return new;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended(new.booking_date::text || ' ' || new.booking_time, 0));
+
+  if (select count(*) from public.bookings b
+       where b.booking_date = new.booking_date
+         and b.booking_time = new.booking_time
+         and b.status <> 'cancelled'
+         and b.id <> new.id) >= public.slot_capacity() then
+    raise exception 'SLOT_FULL' using hint = 'This time is fully booked';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_enforce_capacity on public.bookings;
+create trigger bookings_enforce_capacity
+  before insert or update of status, booking_date, booking_time on public.bookings
+  for each row execute function public.enforce_slot_capacity();
+
+-- What the booking form needs: how many bookings each time already has on a day. Counts only, no personal data.
+create or replace function public.booking_availability(day date)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'capacity', public.slot_capacity(),
+    'booked', coalesce(
+      (select jsonb_object_agg(s.booking_time, s.booked)
+         from (select b.booking_time, count(*) as booked
+                 from public.bookings b
+                where b.booking_date = day and b.status <> 'cancelled'
+                group by b.booking_time) s),
+      '{}'::jsonb)
+  )
+$$;
+
 -- ---------------------------------------------------------------------------
 -- Contact messages (visitors create them, admins read them)
 -- ---------------------------------------------------------------------------
@@ -143,3 +213,7 @@ grant select, update, delete on public.bookings, public.messages to authenticate
 
 revoke execute on function public.move_menu_item(uuid, integer) from public, anon;
 grant execute on function public.move_menu_item(uuid, integer) to authenticated;
+
+revoke execute on function public.enforce_slot_capacity() from public, anon, authenticated;
+revoke execute on function public.booking_availability(date) from public;
+grant execute on function public.booking_availability(date) to anon, authenticated;

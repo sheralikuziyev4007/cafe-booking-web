@@ -1,6 +1,6 @@
 import { isRecord, parseMenu } from "@/utils/menuStorage";
 import { parseBookings, parseMessages } from "@/utils/inboxStorage";
-import type { Booking, ContactMessage, MenuItem, MenuItemInput, NewBooking, NewMessage } from "@/types";
+import type { Booking, ContactMessage, MenuItem, MenuItemInput, NewBooking, NewMessage, SlotAvailability } from "@/types";
 
 /**
  * Converts between the app's types and the database rows (snake_case, see supabase/schema.sql).
@@ -69,4 +69,15 @@ export function parseMessageRows(raw: unknown): ContactMessage[] {
 
 export function toMessageRow(message: NewMessage) {
   return { name: message.name, contact: message.contact, message: message.message };
+}
+
+/** Result of booking_availability(): { capacity, booked: { "19:00": 3 } }. Anything unexpected means "no information". */
+export function parseAvailability(raw: unknown): SlotAvailability {
+  const empty: SlotAvailability = { capacity: Number.MAX_SAFE_INTEGER, booked: {} };
+  if (!isRecord(raw) || typeof raw.capacity !== "number" || !isRecord(raw.booked)) return empty;
+  const booked: Record<string, number> = {};
+  for (const [time, count] of Object.entries(raw.booked)) {
+    if (typeof count === "number") booked[time] = count;
+  }
+  return { capacity: raw.capacity, booked };
 }

@@ -1,6 +1,6 @@
 import type { GetSupabaseClient } from "@/lib/supabase";
 import type { InboxRepository } from "../types";
-import { parseBookingRows, parseMessageRows, toBookingRow, toMessageRow } from "./rows";
+import { parseAvailability, parseBookingRows, parseMessageRows, toBookingRow, toMessageRow } from "./rows";
 import { assertChanged, assertNoError } from "./errors";
 
 const BOOKINGS = "bookings";
@@ -20,6 +20,13 @@ export function createSupabaseInboxRepository(getClient: GetSupabaseClient): Inb
       // No .select() here: visitors may insert a booking but are not allowed to read bookings back
       const { error } = await client.from(BOOKINGS).insert(toBookingRow(booking));
       assertNoError(error);
+    },
+
+    async getAvailability(isoDate) {
+      const client = await getClient();
+      const { data, error } = await client.rpc("booking_availability", { day: isoDate });
+      assertNoError(error);
+      return parseAvailability(data);
     },
 
     async setBookingStatus(id, status) {

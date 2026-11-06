@@ -98,6 +98,8 @@ export const en = {
     openCalendar: "Choose a date in the calendar",
     prevMonth: "Previous month",
     nextMonth: "Next month",
+    slotFull: "fully booked",
+    slotTaken: "This time was just taken. Please choose another one.",
     selectTime: "Select a time",
   },
   footer: {
@@ -190,6 +192,7 @@ export const en = {
       delete: "Delete",
       guests: (n: number) => (n === 1 ? "1 guest" : `${n} guests`),
       received: (date: string) => `Received ${date}`,
+      slotFull: "Can't restore this booking: that time is already fully booked.",
       confirmDelete: (name: string) => `Are you sure? The booking for “${name}” will be deleted.`,
     },
     messages: {

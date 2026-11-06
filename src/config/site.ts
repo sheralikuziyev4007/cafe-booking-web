@@ -24,6 +24,8 @@ export interface SiteConfig {
     slotMinutes: number;
     maxGuests: number;
     maxDaysAhead: number;
+    /** Tables that can be booked for the same time (active bookings per slot). Keep in sync with slot_capacity() in supabase/schema.sql */
+    tablesPerSlot: number;
   };
   map: { embedUrl: string; linkUrl: string };
   social: { id: "instagram" | "telegram" | "facebook"; label: string; href: string }[];
@@ -46,7 +48,7 @@ export const SITE: SiteConfig = {
     instagramHandle: "@coffeeandco",
   },
   hours: { open: "08:00", close: "22:00" },
-  booking: { firstSlot: "08:00", lastSlot: "21:00", slotMinutes: 30, maxGuests: 12, maxDaysAhead: 60 },
+  booking: { firstSlot: "08:00", lastSlot: "21:00", slotMinutes: 30, maxGuests: 12, maxDaysAhead: 60, tablesPerSlot: 6 },
   map: {
     embedUrl:
       "https://www.openstreetmap.org/export/embed.html?bbox=69.2697%2C41.3061%2C69.2897%2C41.3161&layer=mapnik&marker=41.3111%2C69.2797",

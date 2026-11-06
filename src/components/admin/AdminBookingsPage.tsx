@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, Check, Clock, MessageSquare, Phone, Trash2, Users, X } from "lucide-react";
+import { SlotFullError } from "@/services/errors";
 import { useBookings, useInboxActions } from "@/hooks/useInbox";
 import { useI18n } from "@/hooks/useI18n";
 import { formatDate, formatDateTime } from "@/utils/formatters";
@@ -31,8 +32,11 @@ export function AdminBookingsPage() {
   const bookings = data ?? EMPTY_BOOKINGS;
   const { t, lang } = useI18n();
   // A change failed and was rolled back
-  const [actionFailed, setActionFailed] = useState(false);
-  const action = { onSuccess: () => setActionFailed(false), onError: () => setActionFailed(true) };
+  const [actionFailed, setActionFailed] = useState<"failed" | "slotFull" | null>(null);
+  const action = {
+    onSuccess: () => setActionFailed(null),
+    onError: (error: Error) => setActionFailed(error instanceof SlotFullError ? "slotFull" : "failed"),
+  };
   const [filter, setFilter] = useState<Filter>("all");
   const [deleteTarget, setDeleteTarget] = useState<Booking | null>(null);
 
@@ -48,7 +52,9 @@ export function AdminBookingsPage() {
     <>
       <h1 className="text-2xl italic text-heading font-display mb-6">{t.admin.bookings.title}</h1>
 
-      {actionFailed && <ActionError onDismiss={() => setActionFailed(false)} />}
+      {actionFailed && (
+        <ActionError message={actionFailed === "slotFull" ? t.admin.bookings.slotFull : undefined} onDismiss={() => setActionFailed(null)} />
+      )}
 
       <div role="group" aria-label={t.admin.bookings.filter} className="flex flex-wrap gap-2 mb-6">
         {FILTERS.map((f) => (

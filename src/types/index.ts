@@ -45,6 +45,14 @@ export interface BookingFormData {
   comment: string;
 }
 
+/** How busy the time slots of one day are */
+export interface SlotAvailability {
+  /** Active bookings (new or confirmed) one time slot can take */
+  capacity: number;
+  /** Active bookings per time ("19:00" -> 3); times without bookings are absent */
+  booked: Record<string, number>;
+}
+
 export type BookingStatus = "new" | "confirmed" | "cancelled";
 
 export interface Booking {

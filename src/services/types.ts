@@ -1,4 +1,4 @@
-import type { Booking, BookingStatus, ContactMessage, MenuItem, MenuItemInput, NewBooking, NewMessage } from "@/types";
+import type { Booking, BookingStatus, ContactMessage, MenuItem, MenuItemInput, NewBooking, NewMessage, SlotAvailability } from "@/types";
 
 /**
  * The data layer is described by these interfaces. The UI only talks to them (through the hooks in src/hooks),
@@ -22,7 +22,11 @@ export interface InboxRepository {
   peekBookings?: () => Booking[];
   peekMessages?: () => ContactMessage[];
   listBookings: () => Promise<Booking[]>;
+  /** Rejects with SlotFullError when the chosen time is fully booked */
   createBooking: (booking: NewBooking) => Promise<void>;
+  /** How many bookings each time slot already has on a day (isoDate = yyyy-mm-dd) */
+  getAvailability: (isoDate: string) => Promise<SlotAvailability>;
+  /** Rejects with SlotFullError when a cancelled booking is restored into a full slot */
   setBookingStatus: (id: string, status: BookingStatus) => Promise<void>;
   deleteBooking: (id: string) => Promise<void>;
   listMessages: () => Promise<ContactMessage[]>;

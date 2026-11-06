@@ -2,15 +2,17 @@ import { X } from "lucide-react";
 import { useI18n } from "@/hooks/useI18n";
 
 interface ActionErrorProps {
+  /** Replaces the generic "could not save" text */
+  message?: string;
   onDismiss: () => void;
 }
 
 /** Banner above an admin page: a change (save, delete, confirm…) did not go through and was rolled back */
-export function ActionError({ onDismiss }: ActionErrorProps) {
+export function ActionError({ message, onDismiss }: ActionErrorProps) {
   const { t } = useI18n();
   return (
     <div role="alert" className="mb-4 flex items-start justify-between gap-3 px-4 py-3 rounded-md border border-danger text-sm text-danger font-body">
-      <p>{t.states.saveFailed}</p>
+      <p>{message ?? t.states.saveFailed}</p>
       <button
         type="button"
         onClick={onDismiss}

@@ -8,3 +8,7 @@ coverage
 .vercel
 .DS_Store
 *.log
+
+# Playwright
+test-results
+playwright-report
