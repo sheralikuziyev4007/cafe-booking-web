@@ -11,6 +11,7 @@ in **English, Russian or Uzbek**; the owner manages the menu, bookings and messa
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-170_unit_%2B_22_e2e-2ea44f?logo=vitest&logoColor=white)
 ![Lighthouse](https://img.shields.io/badge/Lighthouse-100%2F100%2F100%2F100-2ea44f?logo=lighthouse&logoColor=white)
+![CI](https://github.com/sheralikuziyev4007/cafe-booking-web/actions/workflows/ci.yml/badge.svg)
 
 ![Coffee&Co landing page](./docs/screenshots/landing-hero.webp)
 
@@ -69,7 +70,7 @@ Measured with Lighthouse 12 on the production build (`npm run build && npm run p
 | | Performance | Accessibility | Best Practices | SEO |
 | --- | --- | --- | --- | --- |
 | Desktop | 100 | 100 | 100 | 100 |
-| Mobile | 98 | 100 | 100 | 100 |
+| Mobile | 97 | 100 | 100 | 100 |
 
 ## Screenshots
 
