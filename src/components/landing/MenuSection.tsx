@@ -5,14 +5,20 @@ import { useI18n } from "@/hooks/useI18n";
 import { CATEGORIES } from "@/data/seedData";
 import { CATEGORY_ICONS } from "@/data/categoryIcons";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Reveal } from "@/components/ui/Reveal";
 import { MenuCard } from "./MenuCard";
+import { MenuCardSkeleton } from "./MenuCardSkeleton";
 import { CategoryTab } from "./CategoryTab";
 import { MenuItemModal } from "./MenuItemModal";
 import type { Category, MenuItem } from "@/types";
 
+const EMPTY_MENU: MenuItem[] = [];
+const SKELETON_COUNT = 6;
+
 export const MenuSection = forwardRef<HTMLElement>(function MenuSection(_props, ref) {
-  const { menu } = useMenu();
+  const { data, isError, isFetching, refetch } = useMenu();
+  const menu = data ?? EMPTY_MENU;
   const { t, pick } = useI18n();
   const [activeCategory, setActiveCategory] = useState<Category | "all">("all");
   const [query, setQuery] = useState("");
@@ -79,8 +85,25 @@ export const MenuSection = forwardRef<HTMLElement>(function MenuSection(_props, 
           </div>
         </div>
 
-        <div aria-live="polite">
-          {filtered.length === 0 ? (
+        <div aria-live="polite" aria-busy={!data && !isError}>
+          {!data ? (
+            isError ? (
+              <ErrorState onRetry={() => void refetch()} retrying={isFetching} />
+            ) : (
+              <>
+                <span role="status" className="sr-only">
+                  {t.states.loading}
+                </span>
+                <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-hidden="true">
+                  {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+                    <li key={i}>
+                      <MenuCardSkeleton />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )
+          ) : filtered.length === 0 ? (
             <p className="text-copy font-body">{normalizedQuery ? t.menu.noResults(query.trim()) : t.menu.empty}</p>
           ) : (
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

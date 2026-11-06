@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { renderApp } from "./renderApp";
 
 async function signIn(path = "/admin") {
@@ -20,7 +20,7 @@ describe("Admin panel", () => {
     await user.type(screen.getByLabelText("Username"), "admin");
     await user.type(screen.getByLabelText("Password"), "wrong");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Wrong username or password");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Wrong username or password");
   });
 
   it("returns to the requested admin page after signing in", async () => {
@@ -34,7 +34,7 @@ describe("Admin panel", () => {
 
   it("adds, edits, hides, reorders and deletes menu items", async () => {
     const { user } = await signIn();
-    expect(screen.getByRole("heading", { name: "Menu items (8)" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Menu items (9)" })).toBeInTheDocument();
 
     // Add with only the Russian translation filled
     await user.click(screen.getByRole("button", { name: "Add item" }));
@@ -49,9 +49,9 @@ describe("Admin panel", () => {
     await user.type(within(dialog).getByLabelText("Price (UZS)"), "35000");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
 
-    expect(screen.getByRole("heading", { name: "Menu items (9)" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Menu items (10)" })).toBeInTheDocument();
     // English UI falls back to the Russian text
-    expect(screen.getByRole("button", { name: "Edit: Матча латте" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Edit: Матча латте" })).toBeInTheDocument();
 
     // Edit: add the English name
     await user.click(screen.getByRole("button", { name: "Edit: Матча латте" }));
@@ -59,27 +59,30 @@ describe("Admin panel", () => {
     await user.click(within(dialog).getByRole("tab", { name: /English/ }));
     await user.type(within(dialog).getByLabelText("Name (EN)"), "Matcha latte");
     await user.click(within(dialog).getByRole("button", { name: "Save" }));
-    expect(screen.getByRole("button", { name: "Edit: Matcha latte" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Edit: Matcha latte" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 
     // Stop-list toggle (two switches are rendered: mobile and desktop)
     const [toggle] = screen.getAllByRole("switch", { name: "Toggle availability: Matcha latte" });
     expect(toggle).toHaveAttribute("aria-checked", "true");
     await user.click(toggle);
-    expect(screen.getAllByRole("switch", { name: "Toggle availability: Matcha latte" })[0]).toHaveAttribute("aria-checked", "false");
-    expect(screen.getByText("8 available")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getAllByRole("switch", { name: "Toggle availability: Matcha latte" })[0]).toHaveAttribute("aria-checked", "false")
+    );
+    expect(await screen.findByText("9 available")).toBeInTheDocument();
 
     // Reorder: move up one position
     const names = () => screen.getAllByRole("button", { name: /^Edit: / }).map((b) => b.getAttribute("aria-label"));
     expect(names().at(-1)).toBe("Edit: Matcha latte");
     await user.click(screen.getByRole("button", { name: "Move up: Matcha latte" }));
-    expect(names().at(-2)).toBe("Edit: Matcha latte");
+    await waitFor(() => expect(names().at(-2)).toBe("Edit: Matcha latte"));
 
     // Delete with confirmation
     await user.click(screen.getByRole("button", { name: "Delete: Matcha latte" }));
     const confirm = screen.getByRole("dialog", { name: "Confirm deletion" });
     expect(confirm).toHaveTextContent("Are you sure? “Matcha latte” will be deleted.");
     await user.click(within(confirm).getByRole("button", { name: "Delete" }));
-    expect(screen.getByRole("heading", { name: "Menu items (8)" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Menu items (9)" })).toBeInTheDocument();
   });
 
   it("shows bookings and lets the owner confirm them", async () => {
@@ -96,8 +99,8 @@ describe("Admin panel", () => {
     expect(screen.getByText("Madina")).toBeInTheDocument();
     expect(screen.getByText("4 guests")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Confirm" }));
-    expect(screen.getByText("Confirmed", { selector: "span" })).toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem("coffee-and-co:bookings:v1")!)[0].status).toBe("confirmed");
+    expect(await screen.findByText("Confirmed", { selector: "span" })).toBeInTheDocument();
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("coffee-and-co:bookings:v1")!)[0].status).toBe("confirmed"));
   });
 
   it("marks messages as read", async () => {
@@ -111,6 +114,6 @@ describe("Admin panel", () => {
 
     expect(screen.getByRole("link", { name: "jasur@mail.uz" })).toHaveAttribute("href", "mailto:jasur@mail.uz");
     await user.click(screen.getByRole("button", { name: "Mark as read" }));
-    expect(screen.queryByRole("button", { name: "Mark as read" })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Mark as read" })).not.toBeInTheDocument());
   });
 });

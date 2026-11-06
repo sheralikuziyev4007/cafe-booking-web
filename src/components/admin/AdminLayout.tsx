@@ -3,7 +3,8 @@ import { CalendarDays, Coffee, ExternalLink, LogOut, Mail, UtensilsCrossed } fro
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
 import { useMenu } from "@/hooks/useMenu";
-import { useInbox } from "@/hooks/useInbox";
+import { useBookings, useMessages } from "@/hooks/useInbox";
+import { useServices } from "@/hooks/useServices";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { StatCard } from "./StatCard";
@@ -11,12 +12,14 @@ import { StatCard } from "./StatCard";
 export function AdminLayout() {
   const { logout } = useAuth();
   const { t } = useI18n();
-  const { menu } = useMenu();
-  const { bookings, messages } = useInbox();
+  const { mode } = useServices();
+  const { data: menu } = useMenu();
+  const { data: bookings } = useBookings();
+  const { data: messages } = useMessages();
 
-  const availableCount = menu.filter((m) => m.isAvailable).length;
-  const newBookings = bookings.filter((b) => b.status === "new").length;
-  const unread = messages.filter((m) => !m.read).length;
+  const availableCount = menu?.filter((m) => m.isAvailable).length ?? 0;
+  const newBookings = bookings?.filter((b) => b.status === "new").length ?? 0;
+  const unread = messages?.filter((m) => !m.read).length ?? 0;
 
   const tabs = [
     { to: "/admin", end: true, label: t.admin.tabs.menu, icon: UtensilsCrossed, badge: 0 },
@@ -40,7 +43,7 @@ export function AdminLayout() {
             <Link to="/" className="hidden sm:flex items-center gap-1 text-xs text-cream/80 hover:text-cream font-body">
               {t.admin.openSite} <ExternalLink size={12} aria-hidden="true" />
             </Link>
-            <button onClick={logout} className="text-xs flex items-center gap-1 text-clayLight hover:brightness-110 font-body px-1">
+            <button onClick={() => void logout()} className="text-xs flex items-center gap-1 text-clayLight hover:brightness-110 font-body px-1">
               <LogOut size={14} aria-hidden="true" /> {t.admin.logout}
             </button>
           </div>
@@ -49,9 +52,9 @@ export function AdminLayout() {
 
       <div className="max-w-5xl mx-auto px-6 pt-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard label={t.admin.stats.items} value={menu.length} hint={t.admin.stats.available(availableCount)} />
-          <StatCard label={t.admin.stats.newBookings} value={newBookings} highlight={newBookings > 0} />
-          <StatCard label={t.admin.stats.unread} value={unread} highlight={unread > 0} />
+          <StatCard label={t.admin.stats.items} value={menu?.length ?? null} hint={menu && t.admin.stats.available(availableCount)} />
+          <StatCard label={t.admin.stats.newBookings} value={bookings ? newBookings : null} highlight={newBookings > 0} />
+          <StatCard label={t.admin.stats.unread} value={messages ? unread : null} highlight={unread > 0} />
         </div>
 
         <nav aria-label={t.admin.sections} className="flex gap-1 border-b border-line overflow-x-auto">
@@ -80,7 +83,7 @@ export function AdminLayout() {
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <Outlet />
-        <p className="mt-10 text-xs text-copy/80 font-body">{t.admin.demoNote}</p>
+        {mode === "local" && <p className="mt-10 text-xs text-copy/80 font-body">{t.admin.demoNote}</p>}
       </main>
     </div>
   );

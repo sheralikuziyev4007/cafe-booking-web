@@ -1,12 +1,16 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthProvider";
-import { MenuProvider } from "@/context/MenuProvider";
-import { InboxProvider } from "@/context/InboxProvider";
 import { I18nProvider } from "@/context/I18nProvider";
+import { ServicesProvider } from "@/context/ServicesProvider";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { Landing } from "@/components/landing/Landing";
 import { NotFound } from "@/components/NotFound";
+import { StorageSync } from "@/components/StorageSync";
+import { PageLoader } from "@/components/ui/PageLoader";
+import { createQueryClient } from "@/lib/queryClient";
+import { createDefaultServices, type Services } from "@/services";
 import type { Lang } from "@/types";
 
 // The admin panel is loaded only when visited, so landing page visitors don't download it
@@ -17,17 +21,24 @@ const AdminMenuPage = lazy(() => import("@/components/admin/AdminMenuPage").then
 const AdminBookingsPage = lazy(() => import("@/components/admin/AdminBookingsPage").then((m) => ({ default: m.AdminBookingsPage })));
 const AdminMessagesPage = lazy(() => import("@/components/admin/AdminMessagesPage").then((m) => ({ default: m.AdminMessagesPage })));
 
-function PageLoader() {
-  return <div className="min-h-screen bg-page" aria-busy="true" />;
+interface AppProps {
+  initialLang?: Lang;
+  /** Data layer. By default: Supabase if configured, otherwise the demo storage (tests pass fakes) */
+  services?: Services;
+  queryClient?: QueryClient;
 }
 
-export default function App({ initialLang }: { initialLang?: Lang }) {
+export default function App({ initialLang, services: servicesProp, queryClient: queryClientProp }: AppProps) {
+  const [services] = useState(() => servicesProp ?? createDefaultServices());
+  const [queryClient] = useState(() => queryClientProp ?? createQueryClient());
+
   return (
-    <ThemeProvider>
-      <I18nProvider initialLang={initialLang}>
-        <AuthProvider>
-          <MenuProvider>
-            <InboxProvider>
+    <QueryClientProvider client={queryClient}>
+      <ServicesProvider services={services}>
+        <ThemeProvider>
+          <I18nProvider initialLang={initialLang}>
+            <AuthProvider>
+              {services.mode === "local" && <StorageSync />}
               <div className="min-h-screen bg-page font-body">
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
@@ -44,10 +55,10 @@ export default function App({ initialLang }: { initialLang?: Lang }) {
                   </Routes>
                 </Suspense>
               </div>
-            </InboxProvider>
-          </MenuProvider>
-        </AuthProvider>
-      </I18nProvider>
-    </ThemeProvider>
+            </AuthProvider>
+          </I18nProvider>
+        </ThemeProvider>
+      </ServicesProvider>
+    </QueryClientProvider>
   );
 }

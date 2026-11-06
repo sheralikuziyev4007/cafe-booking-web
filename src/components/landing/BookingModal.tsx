@@ -8,7 +8,7 @@ import { PhoneInput } from "@/components/ui/PhoneInput";
 import { DateField } from "@/components/ui/DateField";
 import { SITE } from "@/config/site";
 import { useI18n } from "@/hooks/useI18n";
-import { useInbox } from "@/hooks/useInbox";
+import { useVisitorActions } from "@/hooks/useInbox";
 import { addDays, toLocalIsoDate, toLocalTime, validateBookingForm, type FormErrors } from "@/utils/validators";
 import { buildTimeSlots, errorMessage, formatDate } from "@/utils/formatters";
 import { isoToDateText, parseDateText } from "@/utils/date";
@@ -23,7 +23,7 @@ interface BookingModalProps {
 
 export function BookingModal({ onClose }: BookingModalProps) {
   const { t, lang } = useI18n();
-  const { addBooking } = useInbox();
+  const { createBooking } = useVisitorActions();
   const today = useMemo(() => toLocalIsoDate(new Date()), []);
   const [form, setForm] = useState<BookingFormData>({
     name: "",
@@ -75,8 +75,7 @@ export function BookingModal({ onClose }: BookingModalProps) {
       guests: Number(form.guests),
       comment: form.comment.trim(),
     };
-    addBooking(booking);
-    setSubmitted(true);
+    createBooking.mutate(booking, { onSuccess: () => setSubmitted(true) });
   };
 
   if (submitted) {
@@ -151,8 +150,14 @@ export function BookingModal({ onClose }: BookingModalProps) {
           onChange={(e) => update("comment", e.target.value)}
         />
 
-        <Button type="submit" className="w-full">
-          {t.booking.submit}
+        {createBooking.isError && (
+          <p role="alert" className="text-sm text-danger font-body">
+            {t.states.sendFailed}
+          </p>
+        )}
+
+        <Button type="submit" className="w-full" disabled={createBooking.isPending}>
+          {createBooking.isPending ? t.states.sending : t.booking.submit}
         </Button>
       </form>
     </Modal>

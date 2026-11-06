@@ -1,34 +1,45 @@
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { Coffee, Lock } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { PageLoader } from "@/components/ui/PageLoader";
 import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useI18n } from "@/hooks/useI18n";
+import type { LoginResult } from "@/services";
 
 export function AdminLogin() {
-  const { isAuthenticated, login } = useAuth();
+  const { status, identifierType, login } = useAuth();
   const { t } = useI18n();
-  const navigate = useNavigate();
   const location = useLocation();
   // ProtectedRoute remembers the admin page that was requested; only /admin/* paths are accepted
   const from = (location.state as { from?: unknown } | null)?.from;
   const redirectTo = typeof from === "string" && from.startsWith("/admin") && !from.startsWith("/admin/login") ? from : "/admin";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [failure, setFailure] = useState<Exclude<LoginResult, "ok"> | null>(null);
+  const [pending, setPending] = useState(false);
 
-  if (isAuthenticated) return <Navigate to={redirectTo} replace />;
+  if (status === "loading") return <PageLoader />;
+  if (status === "authenticated") return <Navigate to={redirectTo} replace />;
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const isEmail = identifierType === "email";
+  const failureText = {
+    invalid: isEmail ? t.admin.wrongEmailCredentials : t.admin.wrongCredentials,
+    forbidden: t.admin.noAccess,
+    error: t.states.serverError,
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (login(username, password)) {
-      setError(false);
-      navigate(redirectTo, { replace: true });
-    } else {
-      setError(true);
-    }
+    if (pending) return;
+    setPending(true);
+    setFailure(null);
+    const result = await login(username, password);
+    setPending(false);
+    // On success the status becomes "authenticated" and the redirect above takes over
+    if (result !== "ok") setFailure(result);
   };
 
   return (
@@ -48,8 +59,9 @@ export function AdminLogin() {
         <form onSubmit={handleSubmit} noValidate className="space-y-4 p-8 rounded-md bg-espressoDark shadow-2xl">
           <Input
             tone="dark"
-            label={t.admin.login}
-            autoComplete="username"
+            label={isEmail ? t.admin.email : t.admin.login}
+            type={isEmail ? "email" : "text"}
+            autoComplete={isEmail ? "email" : "username"}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -62,17 +74,17 @@ export function AdminLogin() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {error && (
+          {failure && (
             <p role="alert" className="text-xs text-clayLight font-body">
-              {t.admin.wrongCredentials}
+              {failureText[failure]}
             </p>
           )}
 
-          <Button type="submit" className="w-full focus-visible:ring-offset-espressoDark">
-            {t.admin.signIn}
+          <Button type="submit" disabled={pending} className="w-full focus-visible:ring-offset-espressoDark">
+            {pending ? t.states.signingIn : t.admin.signIn}
           </Button>
 
-          <p className="text-xs text-center text-cream/60 font-body">{t.admin.demoAccess}</p>
+          {!isEmail && <p className="text-xs text-center text-cream/60 font-body">{t.admin.demoAccess}</p>}
         </form>
 
         <Link to="/" className="block w-full text-center text-xs mt-6 text-cream/70 hover:text-cream font-body">

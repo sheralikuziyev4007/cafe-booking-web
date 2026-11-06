@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { CheckCheck, Trash2 } from "lucide-react";
-import { useInbox } from "@/hooks/useInbox";
+import { useInboxActions, useMessages } from "@/hooks/useInbox";
 import { useI18n } from "@/hooks/useI18n";
 import { formatDateTime } from "@/utils/formatters";
 import { isValidEmail } from "@/utils/validators";
 import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { ActionError } from "./ActionError";
 import { ConfirmModal } from "./ConfirmModal";
+import { ListSkeleton } from "./ListSkeleton";
 import type { ContactMessage } from "@/types";
+
+const EMPTY_MESSAGES: ContactMessage[] = [];
 
 /** mailto: or tel: link for the contact the visitor left */
 function contactHref(contact: string): string {
@@ -14,15 +19,28 @@ function contactHref(contact: string): string {
 }
 
 export function AdminMessagesPage() {
-  const { messages, markMessageRead, deleteMessage } = useInbox();
+  const { data, isError, isFetching, refetch } = useMessages();
+  const { markMessageRead, deleteMessage } = useInboxActions();
+  const messages = data ?? EMPTY_MESSAGES;
   const { t, lang } = useI18n();
+  // A change failed and was rolled back
+  const [actionFailed, setActionFailed] = useState(false);
+  const action = { onSuccess: () => setActionFailed(false), onError: () => setActionFailed(true) };
   const [deleteTarget, setDeleteTarget] = useState<ContactMessage | null>(null);
 
   return (
     <>
       <h1 className="text-2xl italic text-heading font-display mb-6">{t.admin.messages.title}</h1>
 
-      {messages.length === 0 ? (
+      {actionFailed && <ActionError onDismiss={() => setActionFailed(false)} />}
+
+      {!data ? (
+        isError ? (
+          <ErrorState onRetry={() => void refetch()} retrying={isFetching} />
+        ) : (
+          <ListSkeleton />
+        )
+      ) : messages.length === 0 ? (
         <p className="py-10 text-center text-copy font-body rounded-md border border-dashed border-line">{t.admin.messages.empty}</p>
       ) : (
         <ul className="space-y-3">
@@ -44,7 +62,7 @@ export function AdminMessagesPage() {
                 </div>
                 <div className="flex gap-2">
                   {!m.read && (
-                    <Button variant="outline" onClick={() => markMessageRead(m.id)} className="!py-1.5 flex items-center gap-1.5">
+                    <Button variant="outline" onClick={() => markMessageRead.mutate(m.id, action)} className="!py-1.5 flex items-center gap-1.5">
                       <CheckCheck size={14} aria-hidden="true" /> {t.admin.messages.markRead}
                     </Button>
                   )}
@@ -68,7 +86,7 @@ export function AdminMessagesPage() {
           text={t.admin.messages.confirmDelete(deleteTarget.name)}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={() => {
-            deleteMessage(deleteTarget.id);
+            deleteMessage.mutate(deleteTarget.id, action);
             setDeleteTarget(null);
           }}
         />

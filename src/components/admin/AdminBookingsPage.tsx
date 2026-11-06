@@ -1,13 +1,18 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, Check, Clock, MessageSquare, Phone, Trash2, Users, X } from "lucide-react";
-import { useInbox } from "@/hooks/useInbox";
+import { useBookings, useInboxActions } from "@/hooks/useInbox";
 import { useI18n } from "@/hooks/useI18n";
 import { formatDate, formatDateTime } from "@/utils/formatters";
 import { Button } from "@/components/ui/Button";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { ActionError } from "./ActionError";
 import { ConfirmModal } from "./ConfirmModal";
+import { ListSkeleton } from "./ListSkeleton";
 import type { Booking, BookingStatus } from "@/types";
 
 type Filter = BookingStatus | "all";
+
+const EMPTY_BOOKINGS: Booking[] = [];
 
 const FILTERS: Filter[] = ["all", "new", "confirmed", "cancelled"];
 
@@ -21,8 +26,13 @@ const STATUS_STYLES: Record<BookingStatus, string> = {
 const byDateTime = (a: Booking, b: Booking) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
 
 export function AdminBookingsPage() {
-  const { bookings, setBookingStatus, deleteBooking } = useInbox();
+  const { data, isError, isFetching, refetch } = useBookings();
+  const { setBookingStatus, deleteBooking } = useInboxActions();
+  const bookings = data ?? EMPTY_BOOKINGS;
   const { t, lang } = useI18n();
+  // A change failed and was rolled back
+  const [actionFailed, setActionFailed] = useState(false);
+  const action = { onSuccess: () => setActionFailed(false), onError: () => setActionFailed(true) };
   const [filter, setFilter] = useState<Filter>("all");
   const [deleteTarget, setDeleteTarget] = useState<Booking | null>(null);
 
@@ -37,6 +47,8 @@ export function AdminBookingsPage() {
   return (
     <>
       <h1 className="text-2xl italic text-heading font-display mb-6">{t.admin.bookings.title}</h1>
+
+      {actionFailed && <ActionError onDismiss={() => setActionFailed(false)} />}
 
       <div role="group" aria-label={t.admin.bookings.filter} className="flex flex-wrap gap-2 mb-6">
         {FILTERS.map((f) => (
@@ -54,7 +66,13 @@ export function AdminBookingsPage() {
         ))}
       </div>
 
-      {visible.length === 0 ? (
+      {!data ? (
+        isError ? (
+          <ErrorState onRetry={() => void refetch()} retrying={isFetching} />
+        ) : (
+          <ListSkeleton />
+        )
+      ) : visible.length === 0 ? (
         <p className="py-10 text-center text-copy font-body rounded-md border border-dashed border-line">{t.admin.bookings.empty}</p>
       ) : (
         <ul className="space-y-3">
@@ -95,12 +113,12 @@ export function AdminBookingsPage() {
 
                 <div className="flex flex-wrap gap-2">
                   {b.status !== "confirmed" && (
-                    <Button onClick={() => setBookingStatus(b.id, "confirmed")} className="!py-1.5 flex items-center gap-1.5">
+                    <Button onClick={() => setBookingStatus.mutate({ id: b.id, status: "confirmed" }, action)} className="!py-1.5 flex items-center gap-1.5">
                       <Check size={14} aria-hidden="true" /> {t.admin.bookings.confirm}
                     </Button>
                   )}
                   {b.status !== "cancelled" && (
-                    <Button variant="outline" onClick={() => setBookingStatus(b.id, "cancelled")} className="!py-1.5 flex items-center gap-1.5">
+                    <Button variant="outline" onClick={() => setBookingStatus.mutate({ id: b.id, status: "cancelled" }, action)} className="!py-1.5 flex items-center gap-1.5">
                       <X size={14} aria-hidden="true" /> {t.admin.bookings.cancel}
                     </Button>
                   )}
@@ -124,7 +142,7 @@ export function AdminBookingsPage() {
           text={t.admin.bookings.confirmDelete(deleteTarget.name)}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={() => {
-            deleteBooking(deleteTarget.id);
+            deleteBooking.mutate(deleteTarget.id, action);
             setDeleteTarget(null);
           }}
         />

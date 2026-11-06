@@ -27,11 +27,15 @@ interface ItemFormModalProps {
   initial: MenuItem | null;
   onCancel: () => void;
   onSave: (data: MenuItemInput) => void;
+  /** The request is running: the form stays open and the Save button is disabled */
+  saving?: boolean;
+  /** The last save failed: the form stays open so nothing typed is lost */
+  saveFailed?: boolean;
 }
 
 const trimAll = (text: Record<Lang, string>) => ({ en: text.en.trim(), ru: text.ru.trim(), uz: text.uz.trim() });
 
-export function ItemFormModal({ initial, onCancel, onSave }: ItemFormModalProps) {
+export function ItemFormModal({ initial, onCancel, onSave, saving = false, saveFailed = false }: ItemFormModalProps) {
   const { t, lang } = useI18n();
   const [editLang, setEditLang] = useState<Lang>(lang);
   const [form, setForm] = useState<MenuFormState>(initial ? { ...initial, price: String(initial.price) } : EMPTY_FORM);
@@ -152,12 +156,18 @@ export function ItemFormModal({ initial, onCancel, onSave }: ItemFormModalProps)
           {t.admin.form.available}
         </label>
 
+        {saveFailed && (
+          <p role="alert" className="mt-4 text-sm text-danger font-body">
+            {t.states.saveFailed}
+          </p>
+        )}
+
         <div className="flex gap-3 mt-6">
           <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
             {t.admin.form.cancel}
           </Button>
-          <Button type="submit" className="flex-1">
-            {t.admin.form.save}
+          <Button type="submit" className="flex-1" disabled={saving}>
+            {saving ? t.states.saving : t.admin.form.save}
           </Button>
         </div>
       </form>

@@ -60,9 +60,14 @@ export interface Booking {
   createdAt: string;
 }
 
+/** What the visitor submits; id, status and timestamp are added by the data layer */
+export type NewBooking = Omit<Booking, "id" | "status" | "createdAt">;
+
 export interface ContactMessage extends ContactFormData {
   id: string;
   read: boolean;
   /** ISO timestamp */
   createdAt: string;
 }
+
+export type NewMessage = Omit<ContactMessage, "id" | "read" | "createdAt">;

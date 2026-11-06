@@ -25,10 +25,10 @@ describe("Landing page", () => {
     const { user } = renderApp("/", "en");
     const menu = () => screen.getAllByRole("button", { name: /^Details:/ }).map((b) => b.textContent);
 
-    expect(menu()).toHaveLength(8);
+    expect(menu()).toHaveLength(9);
 
     await user.click(screen.getByRole("button", { name: "Desserts", pressed: false }));
-    expect(menu()).toEqual(["Basque cheesecake", "Almond croissant"]);
+    expect(menu()).toEqual(["Basque cheesecake", "Almond croissant", "Tiramisu"]);
 
     await user.click(screen.getByRole("button", { name: "All" }));
     // Search works in any language, not only the current one

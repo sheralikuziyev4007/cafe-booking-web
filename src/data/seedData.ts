@@ -71,6 +71,20 @@ export const INITIAL_MENU: MenuItem[] = [
     },
   },
   {
+    id: "9",
+    category: "desserts",
+    price: 36000,
+    // Add the photo as public/images/tiramisu.webp and set imageUrl: "/images/tiramisu.webp"
+    imageUrl: "",
+    isAvailable: true,
+    name: { en: "Tiramisu", ru: "Тирамису", uz: "Tiramisu" },
+    description: {
+      en: "Mascarpone cream, espresso-soaked savoiardi, cocoa",
+      ru: "Крем маскарпоне, савоярди в эспрессо, какао",
+      uz: "Maskarpone kremi, espressoga boʻktirilgan savoyardi, kakao",
+    },
+  },
+  {
     id: "6",
     category: "breakfast",
     price: 34000,

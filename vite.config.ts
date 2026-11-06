@@ -13,8 +13,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // React + router in a separate long-cached chunk
-        manualChunks: { vendor: ["react", "react-dom", "react-router-dom"] },
+        // React, router and the query library in a separate long-cached chunk
+        manualChunks: { vendor: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"] },
       },
     },
   },
@@ -23,5 +23,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     css: false,
+    // Tests always use the demo storage, even if a developer has Supabase keys in .env.local
+    env: { VITE_SUPABASE_URL: "", VITE_SUPABASE_ANON_KEY: "" },
   },
 });

@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { SITE } from "@/config/site";
 import { useI18n } from "@/hooks/useI18n";
-import { useInbox } from "@/hooks/useInbox";
+import { useVisitorActions } from "@/hooks/useInbox";
 import { validateContactForm, type FormErrors } from "@/utils/validators";
 import { errorMessage } from "@/utils/formatters";
 import { formatPhone, isValidPhone } from "@/utils/phone";
@@ -16,7 +16,7 @@ const EMPTY_FORM: ContactFormData = { name: "", contact: "", message: "" };
 
 export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
   const { t, pick } = useI18n();
-  const { addMessage } = useInbox();
+  const { createMessage } = useVisitorActions();
   const [form, setForm] = useState<ContactFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors<ContactFormData>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -38,11 +38,15 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
       contact: contact.includes("@") ? contact : formatPhone(contact),
       message: form.message.trim(),
     };
-    addMessage(data);
-    setForm(EMPTY_FORM);
-    setSubmitted(true);
-    window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => setSubmitted(false), 5000);
+    // The form is cleared only after the request succeeds, so nothing typed is lost on failure
+    createMessage.mutate(data, {
+      onSuccess: () => {
+        setForm(EMPTY_FORM);
+        setSubmitted(true);
+        window.clearTimeout(timerRef.current);
+        timerRef.current = window.setTimeout(() => setSubmitted(false), 5000);
+      },
+    });
   };
 
   return (
@@ -134,9 +138,15 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
               error={errorMessage(t, errors.message)}
             />
 
-            <Button type="submit" className="flex items-center gap-2 focus-visible:ring-offset-espresso">
-              {t.contact.send} <Send size={14} aria-hidden="true" />
+            <Button type="submit" disabled={createMessage.isPending} className="flex items-center gap-2 focus-visible:ring-offset-espresso">
+              {createMessage.isPending ? t.states.sending : t.contact.send} <Send size={14} aria-hidden="true" />
             </Button>
+
+            {createMessage.isError && (
+              <p role="alert" className="text-sm text-clayLight font-body">
+                {t.states.sendFailed}
+              </p>
+            )}
 
             <div role="status" aria-live="polite">
               {submitted && (
