@@ -51,7 +51,7 @@ in **English, Russian or Uzbek**; the owner manages the menu, bookings and messa
 
 - TypeScript strict, no `any`; small single-purpose components
 - Accessibility: labelled fields, `role="dialog"` with focus trap and focus return, `aria-pressed`, `role="switch"`, contrast ≥ 4.5:1 in both themes
-- 89 automated tests (Vitest + Testing Library): validators, phone and date masks, storage migration, formatting, and full user flows (booking, calendar, contact form, admin CRUD)
+- 97 automated tests (Vitest + Testing Library): validators, phone and date masks, storage migration, formatting, and full user flows (booking, calendar, contact form, admin CRUD)
 - GitHub Actions CI: lint → typecheck → tests → build
 - `npm audit`: 0 vulnerabilities
 
