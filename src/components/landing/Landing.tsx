@@ -16,7 +16,7 @@ export function Landing() {
   const contactRef = useRef<HTMLElement>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
 
-  const sectionRefs: Record<Exclude<SectionKey, "home">, React.RefObject<HTMLElement>> = {
+  const sectionRefs: Record<Exclude<SectionKey, "home">, React.RefObject<HTMLElement | null>> = {
     about: aboutRef,
     menu: menuRef,
     reviews: reviewsRef,

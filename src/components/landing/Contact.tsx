@@ -28,7 +28,7 @@ export const Contact = forwardRef<HTMLElement>(function Contact(_props, ref) {
   } = useForm<ContactFormData>({ resolver: lazyZodResolver(() => import("@/schemas/contact").then((m) => m.contactSchema)), defaultValues: EMPTY_FORM });
   const contactField = register("contact");
   const [submitted, setSubmitted] = useState(false);
-  const timerRef = useRef<number>();
+  const timerRef = useRef<number | undefined>(undefined);
 
   // Don't leave a pending timer after unmount
   useEffect(() => () => window.clearTimeout(timerRef.current), []);

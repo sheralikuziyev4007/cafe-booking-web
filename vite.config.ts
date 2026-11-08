@@ -14,7 +14,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // React, router and the query library in a separate long-cached chunk
-        manualChunks: { vendor: ["react", "react-dom", "react-router-dom", "@tanstack/react-query"] },
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          return /node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@tanstack\/(react-)?query[^/]*)\//.test(id)
+            ? "vendor"
+            : undefined;
+        },
       },
     },
   },
