@@ -74,8 +74,7 @@ export const INITIAL_MENU: MenuItem[] = [
     id: "9",
     category: "desserts",
     price: 36000,
-    // Add the photo as public/images/tiramisu.webp and set imageUrl: "/images/tiramisu.webp"
-    imageUrl: "",
+    imageUrl: "/images/tiramisu.webp",
     isAvailable: true,
     name: { en: "Tiramisu", ru: "Тирамису", uz: "Tiramisu" },
     description: {

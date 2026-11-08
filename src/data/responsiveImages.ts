@@ -13,6 +13,7 @@ const RESPONSIVE_IMAGES: Record<string, { width: number; variants: number[] }> =
   oatmeal: { width: 554, variants: [400] },
   pasta: { width: 1200, variants: [400, 800] },
   raf: { width: 1536, variants: [400, 800] },
+  tiramisu: { width: 800, variants: [400] },
 };
 
 /** srcSet for a local /images/<name>.webp file, or undefined if there are no smaller copies */
