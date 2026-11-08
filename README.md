@@ -3,17 +3,19 @@
 A production-ready website for a coffee shop or restaurant. Guests browse the menu, book a table and send messages
 in **English, Russian or Uzbek**; the owner manages the menu, bookings and messages in a simple admin panel.
 
-**Live demo:** [cafe-booking-web.vercel.app](https://cafe-booking-web.vercel.app/) · **Admin:** [/admin](https://cafe-booking-web.vercel.app/admin) (`admin` / `admin123`)
+**Live demo:** [cafe-booking-web.vercel.app](https://cafe-booking-web.vercel.app/) · **Admin:** [/admin](https://cafe-booking-web.vercel.app/admin) (`admin` / `admin123` — public demo credentials, see [Demo mode](#demo-mode-and-credentials))
 
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-170_unit_%2B_22_e2e-2ea44f?logo=vitest&logoColor=white)
-![Lighthouse](https://img.shields.io/badge/Lighthouse-100%2F100%2F100%2F100-2ea44f?logo=lighthouse&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-180_unit_%2B_22_e2e-2ea44f?logo=vitest&logoColor=white)
+![Lighthouse](https://img.shields.io/badge/Lighthouse-96--100%2F100%2F100%2F100-2ea44f?logo=lighthouse&logoColor=white)
 ![CI](https://github.com/sheralikuziyev4007/cafe-booking-web/actions/workflows/ci.yml/badge.svg)
 
 ![Coffee&Co landing page](./docs/screenshots/landing-hero.webp)
+
+![Coffee&Co demo: menu, languages, dark theme, table booking and admin panel](./docs/demo.gif)
 
 ## Why this project
 
@@ -26,7 +28,7 @@ in **English, Russian or Uzbek**; the owner manages the menu, bookings and messa
 | No double bookings | Each time slot has a limit (6 tables by default). Full times are greyed out in the form and the database refuses the extra request, even if two guests click at the same moment |
 | The owner sees requests from any device | Optional **Supabase** backend (Postgres, Auth, Row Level Security): a booking made on a guest's phone appears in the owner's panel. Without keys the site runs as a self-contained demo |
 | Found on Google, looks great when shared | Open Graph preview, `CafeOrCoffeeShop` structured data, sitemap, Lighthouse SEO 100 |
-| Fast on any phone | ~119 KB gzipped JS for the landing page (the validation library is downloaded only when a form is first submitted), admin code is lazy-loaded (and the Supabase SDK is a separate chunk that is downloaded only when a backend is configured), responsive images (`srcset`), Lighthouse Performance 97 mobile / 100 desktop |
+| Fast on any phone | ~143 KB gzipped JS for the landing page (the validation library is downloaded only when a form is first submitted), admin code is lazy-loaded (and the Supabase SDK is a separate chunk that is downloaded only when a backend is configured), responsive images (`srcset`), Lighthouse Performance 96 mobile / 100 desktop |
 
 ## Features
 
@@ -57,7 +59,7 @@ in **English, Russian or Uzbek**; the owner manages the menu, bookings and messa
 - Accessibility: labelled fields, `role="dialog"` with focus trap and focus return, `aria-pressed`, `role="switch"`, contrast ≥ 4.5:1 in both themes
 - Every request has **loading** (skeleton cards that match the real layout), **error** (message + retry button) and **empty** states; forms keep what the visitor typed when sending fails
 - Forms use **React Hook Form + Zod**: one schema per form is the single source of truth for validation, and error messages are translated per language
-- 170 unit and integration tests (Vitest + Testing Library): schemas, phone and date masks, storage migration, the Supabase data layer (against a fake client), the Telegram message builder, slot capacity, loading / error / empty states, rollback of failed changes, and full user flows (booking, calendar, contact form, admin CRUD)
+- 180 unit and integration tests (Vitest + Testing Library): schemas, phone and date masks, storage migration, the Supabase data layer (against a fake client), the Telegram message builder, slot capacity, loading / error / empty states, rollback of failed changes, and full user flows (booking, calendar, contact form, admin CRUD)
 - 22 end-to-end tests (Playwright, real Chrome): a guest books → the owner confirms, a full time cannot be chosen, menu management, no horizontal scroll at 360 / 768 / 1024 / 1440 px, axe accessibility scan in light and dark themes, keyboard-only booking
 - The database schema, Row Level Security policies and the slot-capacity trigger were run on a real PostgreSQL engine (anonymous visitors, signed-in non-admins and admins) with 39 checks (`npm run test:db`)
 - GitHub Actions CI: lint → typecheck → unit tests → database tests → build, plus a separate end-to-end job
@@ -70,7 +72,7 @@ Measured with Lighthouse 12 on the production build (`npm run build && npm run p
 | | Performance | Accessibility | Best Practices | SEO |
 | --- | --- | --- | --- | --- |
 | Desktop | 100 | 100 | 100 | 100 |
-| Mobile | 97 | 100 | 100 | 100 |
+| Mobile | 96 | 100 | 100 | 100 |
 
 ## Screenshots
 
@@ -88,7 +90,7 @@ Measured with Lighthouse 12 on the production build (`npm run build && npm run p
 
 ## Tech stack
 
-- React 18 + TypeScript, React Router 7 (lazy-loaded admin routes)
+- React 19 + TypeScript, React Router 7 (lazy-loaded admin routes)
 - Vite 6, Tailwind CSS 3 (theme tokens via CSS variables), lucide-react icons
 - TanStack Query for server data (menu, bookings, messages), React Hook Form + Zod for forms, Context API for i18n, theme, auth
 - Supabase (Postgres + Auth + Row Level Security) as an optional backend; without it the data lives in localStorage
@@ -155,9 +157,18 @@ npm run preview      # serve the production build
 - **Netlify**: build `npm run build`, publish `dist` (`public/_redirects` provides the SPA fallback).
 - With a backend, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host's environment variables (they are read at build time).
 
+## Demo mode and credentials
+
+Without any setup the site runs as a self-contained demo: data lives in the visitor's own browser (`localStorage`), so nothing
+is shared between people. The admin login `admin` / `admin123` is a **public demo credential that protects nothing**: it
+only exists so that anyone can try the admin panel, and it is checked in the browser.
+
+- Never use demo mode for a real business. Connect the backend below, where sign-in is a real Supabase account and access
+  is enforced by Row Level Security on the server.
+- With the backend configured, the demo login is switched off completely.
+
 ## Connect a backend (optional)
 
-Without any setup the site runs as a demo: data lives in the browser (`localStorage`) and the admin login is `admin` / `admin123`.
 To store data on a server, connect a free [Supabase](https://supabase.com) project. The UI does not change.
 
 1. Create a Supabase project.
@@ -229,6 +240,30 @@ Each date + time can hold a limited number of active bookings (new or confirmed)
   The owner gets instant news through the Telegram notification above.
 - Menu photos are files in `public/images/` or links; there is no image upload.
 - Demo mode is per-browser by design: use the backend for anything real.
+
+## My contribution and solved problems
+
+I designed and built this project end to end, working from a written client brief ([English](./docs/TZ.en.md) ·
+[Russian original](./docs/TZ.md)): UI and UX, the React/TypeScript front end, the data layer, the Supabase database
+and security rules, the tests and the CI pipeline.
+
+**What I delivered**
+
+- A three-language (EN / RU / UZ) website and an owner admin panel, in two modes: a zero-setup demo and a real Supabase backend that share one UI.
+- A data layer behind interfaces (`services/`), so switching from `localStorage` to Supabase needed no UI changes.
+- 180 unit / integration tests, 22 end-to-end tests, 39 database policy checks and a CI pipeline that runs all of them.
+
+**Problems I solved**
+
+| Problem | How I solved it |
+| --- | --- |
+| Two guests could book the last table at the same moment | A database trigger counts active bookings per slot under an advisory lock, so the extra request is rejected even under a race. The form also greys out full times, and a time taken while the form was open is refused with a clear message. |
+| A public anon key must not expose private data | Row Level Security: visitors can only *create* bookings and messages, never read them; admin rights come from `app_metadata.role`, which users cannot edit. Policies are verified by tests on a real PostgreSQL engine. |
+| Slow first load on mobile | Admin code and the Supabase SDK are lazy-loaded, the validation library is downloaded only when a form is first submitted, images use `srcset` and WebP. Mobile Lighthouse Performance: 96. |
+| Phone numbers are typed in many ways | A masked input with a stable caret that ignores letters and rejects incomplete numbers; other countries use the `+<country code>` format. |
+| A failed request must not leave the UI lying | Changes in the admin panel are applied instantly and rolled back with an explanation if the request fails; forms keep what the visitor typed. |
+| Translations drifting apart | `en.ts` is the source of truth and TypeScript fails the build if `ru.ts` or `uz.ts` miss a key. |
+| Owners miss requests | A Supabase Edge Function sends a Telegram message for each new booking or message; the bot token never reaches the browser. |
 
 ## License
 
